@@ -33,14 +33,48 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+        // Ensure that there's a camera activity to handle the intent
+        // Create the File where the photo should go
+        File photoFile = null;
+        try {
+            photoFile = getFile();
+        } catch (IOException ex) {
+            // Error occurred while creating the File
+            ex.printStackTrace();
+        }
+        // Continue only if the File was successfully created
+        if (photoFile != null) {
+            Uri photoURI = FileProvider.getUriForFile(this,
+                    "com.example.android.fileprovider",
+                    photoFile);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }
     }
+
+    protected File getFile() throws IOException {
+        File path = getApplicationContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = new File(path, "image.jpg");
+        return image;
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        super.onActivityResult(requestCode, resultCode, data);
+        final ImageView imageview = findViewById(R.id.userPhoto);
+        try {
+            Uri fileURI = Uri.fromFile(getFile());
+            imageview.setImageURI(fileURI);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    /*
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -60,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 
 
 }
